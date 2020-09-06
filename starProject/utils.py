@@ -1,4 +1,7 @@
 import inspect
+import json
+from copy import copy
+
 import jwt
 import logging
 import pprint
@@ -71,3 +74,54 @@ def generate_token(user):
     }
     token = jwt.encode(token_data, SECRET_KEY, algorithm='HS256')
     return token
+
+
+def str_errors(serializer_errors, fields=True):
+    """ serializer_errors:
+         1) dict where key = fileld name, value = list strings of errors, OR
+         2) list dicts from 1) if serializer with many=True
+         3) etc...
+    """
+
+    def collect_errors(collect_list, errors, parent_field=''):
+        if isinstance(errors, dict):
+            for field, str_errors in errors.items():
+                prefix = '%s > %s' % (parent_field, field) if parent_field else field
+                if isinstance(str_errors, list):
+                    for str_error in str_errors:
+                        prefix = '%s > %s' % (parent_field, field) if parent_field else field
+                        if isinstance(str_error, str):
+                            collect_list.append('%s: %s' % (prefix, str_error))
+                        else:
+                            collect_errors(collect_list, str_error, prefix)
+                elif isinstance(str_errors, str):
+                    collect_list.append('%s: %s' % (prefix, str_errors))
+                else:
+                    collect_errors(collect_list, str_errors, prefix)
+        elif isinstance(errors, list):
+            for error in errors:
+                collect_errors(collect_list, error)
+        else:
+            collect_list.append(errors)
+
+    res_errors = []
+    collect_errors(res_errors, serializer_errors)
+
+    if fields:
+        res = '<br>'.join(res_errors).replace('non_field_errors:','')
+    else:
+        res = '<br>'.join([err.split(':', maxsplit=1)[-1].lstrip() for err in res_errors])
+    return res
+
+
+def json_loads(filters):
+    """ delete none values from filters
+    """
+    _filters = json.loads(filters or '{}')
+    res_filters = copy(_filters)
+
+    for param, value in _filters.items():
+        # Выкидываем пустые значения из фильтров, при этом ноль оставляем
+        if not value and value != 0:
+            res_filters.pop(param)
+    return res_filters

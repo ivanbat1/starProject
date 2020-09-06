@@ -42,7 +42,13 @@ INSTALLED_APPS = [
     # 'rest_framework.authtoken',
     'social_django',
     'user',
+    'wishlist'
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 1
+}
 
 MIDDLEWARE = [
     'starProject.middleware.RequestInterceptor',

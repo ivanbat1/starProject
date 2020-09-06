@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import jwt
 
 from user.models import Users
@@ -41,7 +43,6 @@ class RequestInterceptor(object):
         if initkwargs != None:
             # По умолчанию для всех url нужна авторизация
             isLogin = initkwargs.get('isLogin', True)
-            print('isLogin', isLogin)
             if isLogin:
                 auth = request.META.get('HTTP_AUTHORIZATION')
                 response_error = {
@@ -53,7 +54,9 @@ class RequestInterceptor(object):
                     token = auth[11:]
                     try:
                         body = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
-                        print(body)
+                        if datetime.fromtimestamp(body.get('exp')) < datetime.now():
+                            return JSONResponse(response_error,
+                                                status=status.HTTP_401_UNAUTHORIZED)
                         user_id = body.get('user_id')
                         # transfer user_id in to view
                         request.user_id = user_id

@@ -20,6 +20,8 @@ class Registration(APIView):
         username = data.get('username')
         email = data.get('email', '')
         context = {}
+        if not username:
+            return JSONResponse({'error': 'username exist'}, status=HTTP_200_OK)
         if password1 == password2:
             data_create = {'username': username, 'password': password1, 'email': email}
             user, created = Users.objects.get_or_create(username=username, defaults=data_create)
@@ -27,9 +29,10 @@ class Registration(APIView):
                 token = generate_token(user)
                 context['message'] = 'user created'
                 context['token'] = token
-
+            else:
+                context['error'] = 'user with this username already exist'
         else:
-            context['message'] = 'user not created'
+            context['error'] = 'password don\'t match'
         return JSONResponse(context, status=HTTP_200_OK)
 
 
@@ -75,6 +78,7 @@ class Login(APIView):
 class Logout(APIView):
 
     def post(self, request, *args, **kwargs):
+        # clear cech in browser
         context = {
             'message': 'logout'
         }
