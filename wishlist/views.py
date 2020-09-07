@@ -25,11 +25,15 @@ class WishList(ListAPIView):
 
 def create_items(items, wishlist_id):
     for item in items:
+        if not item.get('text'):
+            continue
         WishListsItems.objects.create(text=item.get('text'), wishlist_id=wishlist_id)
 
 
 def update_items(items, wishlist_id):
     for item in items:
+        if not item.get('text') or not item.get('id'):
+            continue
         WishListsItems.objects.filter(id=item.get('id'), wishlist_id=wishlist_id).update(text=item.get('text'))
 
 

@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/3.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
+import django_heroku
 import os
 import datetime
 from pathlib import Path
@@ -149,3 +150,5 @@ SALT = {
     'length': 16,   # symbols
     'life': 10,     # seconds
 }
+# Activate Django-Heroku.
+django_heroku.settings(locals())
